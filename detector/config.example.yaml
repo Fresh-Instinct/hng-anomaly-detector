@@ -1,4 +1,4 @@
-slack_webhook: "https://hooks.slack.com/services/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"
+slack_webhook: "REPLACEMENT_VALUE"
 log_path: "/var/log/nginx/hng-access.log"
 metrics_port: 8080
 # Detection thresholds
