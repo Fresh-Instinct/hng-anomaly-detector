@@ -1,0 +1,44 @@
+services:
+  nginx:
+    image: nginx:alpine
+    ports: ["80:80"]
+    volumes:
+      - HNG-nginx-logs:/var/log/nginx              # ✅ NAMED VOLUME
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on: [nextcloud]
+    restart: unless-stopped
+
+  nextcloud:
+    image: kefaslungu/hng-nextcloud                # ✅ REQUIRED IMAGE
+    volumes: [nextcloud_data:/var/www/html]
+    environment:
+      MYSQL_HOST: db
+      MYSQL_DATABASE: nextcloud
+      MYSQL_USER: nextcloud
+      MYSQL_PASSWORD: nextcloud123
+    depends_on: [db]
+    restart: unless-stopped
+
+  db:
+    image: mariadb:10.6
+    volumes: [db_data:/var/lib/mysql]
+    environment:
+      MYSQL_ROOT_PASSWORD: nextcloud123
+      MYSQL_PASSWORD: nextcloud123
+      MYSQL_DATABASE: nextcloud
+      MYSQL_USER: nextcloud
+    restart: unless-stopped
+
+  detector:
+    build: ./detector                               # ✅ Daemon container
+    privileged: true                               # ✅ iptables
+    volumes:
+      - HNG-nginx-logs:/var/log/nginx:ro           # ✅ READ-ONLY
+    ports: ["8080:8080"]                           # ✅ Dashboard
+    depends_on: [nginx]
+    restart: unless-stopped
+
+volumes:
+  HNG-nginx-logs:                                    # ✅ REQUIRED NAME
+  nextcloud_data:
+  db_data:

@@ -1,0 +1,13 @@
+slack_webhook: "https://hooks.slack.com/services/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"
+log_path: "/var/log/nginx/hng-access.log"
+metrics_port: 8080
+# Detection thresholds
+z_score_threshold: 3.0
+multiplier_threshold: 5.0
+error_multiplier: 3.0
+# Windows (seconds)
+short_window: 60
+baseline_window: 1800  # 30 minutes
+recalc_interval: 60
+# Auto-unban schedule (seconds)
+unban_schedule: [600, 1800, 7200, 86400]  # 10m, 30m, 2h, 24h (permanent)
