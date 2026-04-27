@@ -1,7 +1,7 @@
 # 🚀 HNG Anomaly Detector
 
 ## 🖥️ LIVE URLS
-**Dashboard**: `http://YOUR_IP:8080` ← **SUBMIT THIS**
+**Dashboard**: `http://YOUR_IP:8080`
 
 ## ✅ TECHNICAL SPECS MET
 - **Sliding Window**: `deque(maxlen=60)` per-IP + global
