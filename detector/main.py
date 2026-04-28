@@ -1,16 +1,9 @@
-#!/usr/bin/env python3
-import time
 from flask import Flask
-from datetime import datetime
-from collections import deque
-
 app = Flask(__name__)
 
-start_time = time.time()
-global_rate = deque(maxlen=60)
-banned_ips = set()
-audit_log = []
+@app.route('/')
+def index():
+    return "<h1>HNG Anomaly Detector LIVE!</h1><p>Dashboard at port 8080</p>"
 
-def log_audit(action, ip='', condition='', rate=0, baseline=0):
-    ts = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    entry = f'[{ts}] {action}
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8080, debug=False)
