@@ -1,5 +1,5 @@
 flask
-yaml
+PyYAML
 requests
 psutil
 gunicorn

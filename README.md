@@ -53,7 +53,6 @@ Every 60 seconds:
     - Mean traffic is recalculated
     - Standard deviation is updated
     - Hour-based grouping is used for accuracy
-
 This ensures the system adapts to:
     - day vs night traffic
     - low vs peak usage periods
@@ -121,3 +120,5 @@ Then access:
 **Author**
 Fresh-Instinct
 
+**Blog Post**
+https://medium.com/@Fresh_Instinct/️-building-a-simple-devsecops-anomaly-detection-system-beginner-friendly-guide-8a17015e6241
