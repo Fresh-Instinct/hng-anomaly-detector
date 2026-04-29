@@ -1,37 +1,42 @@
 import os
 import time
 from datetime import datetime
-from state import banned_ips, state_lock, add_audit
-from notifier import send_slack_alert
+
+from detector.state import banned_ips, state_lock, add_audit
+from detector.notifier import send_slack_alert
 
 
 def start_unbanner():
     while True:
-        now = time.time()
+        time.sleep(20)
+
         expired = []
 
         with state_lock:
-            for ip, meta in list(banned_ips.items()):
-                if meta['ban_until'] and now >= meta['ban_until']:
-                    expired.append((ip, meta))
+            now = time.time()
 
-            for ip, meta in expired:
-                try:
-                    os.system(f"iptables -D INPUT -s {ip} -j DROP")
-                except:
-                    pass
+            for ip, info in list(banned_ips.items()):
+                ban_until = info.get("ban_until")
 
-                del banned_ips[ip]
+                if ban_until is not None and now >= ban_until:
+                    expired.append((ip, info))
 
-                ts = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
-                event = f"[{ts}] UNBAN {ip} | timeout expired | - | - | released"
-                add_audit(event)
+        for ip, info in expired:
+            try:
+                os.system(f"iptables -D INPUT -s {ip} -j DROP")
+            except:
+                pass
 
-                send_slack_alert(
-                    "✅ IP UNBANNED",
-                    f"IP: {ip}
-Previous Duration: {meta['duration']}
-Reason: Ban timer expired"
-                )
+            with state_lock:
+                if ip in banned_ips:
+                    del banned_ips[ip]
 
-        time.sleep(5)
+            ts = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+            duration = info.get("duration", "temporary")
+
+            add_audit(f"[{ts}] UNBAN {ip} | duration_served={duration}")
+
+            send_slack_alert(
+                "♻️ IP UNBANNED",
+                f"IP: {ip}\nDuration Served: {duration}\nStatus: Restored"
+            )

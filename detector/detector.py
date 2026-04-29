@@ -1,58 +1,68 @@
 import time
-import statistics
-from datetime import datetime
+from collections import Counter
 
-import state
-from state import (
+from detector.state import (
     global_window,
-    ip_windows,
-    ip_error_windows,
+    ip_request_counter,
     banned_ips,
     state_lock,
+    add_alert,
     add_audit,
-    baseline_mean,
-    baseline_stddev,
 )
-from blocker import ban_ip
-from notifier import send_slack_alert
+from detector.notifier import send_slack_alert
+from detector.blocker import block_ip
 
-Z_THRESHOLD = 3.0
-MULTIPLIER = 5
 
+THRESHOLD_MULTIPLIER = 3
 
 def start_detector_loop():
-    """Main anomaly detection engine (runs continuously)"""
     while True:
-        time.sleep(1)
-        now = time.time()
+        time.sleep(10)
 
         with state_lock:
-            # ================= GLOBAL TRAFFIC =================
             global_rate = len(global_window)
+            ip_stats = dict(ip_request_counter)
 
-            # z-score calculation
-            std = state.baseline_stddev if state.baseline_stddev > 0 else 1
-            z_score = (global_rate - state.baseline_mean) / std
+        if global_rate == 0:
+            continue
 
-            global_anomaly = (
-                z_score > Z_THRESHOLD
-                or global_rate > state.baseline_mean * MULTIPLIER
-            )
+        suspicious = [
+            (ip, count)
+            for ip, count in ip_stats.items()
+            if count > THRESHOLD_MULTIPLIER
+        ]
 
-            if global_anomaly:
-                ts = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
-                event = f"[{ts}] GLOBAL ALERT | z={z_score:.2f} | rate={global_rate} | mean={state.baseline_mean:.2f}"
-                add_audit(event)
+        if not suspicious:
+            continue
 
-                send_slack_alert(
-                    "🌍 GLOBAL TRAFFIC ANOMALY",
-                    f"Rate: {global_rate}
-Baseline: {state.baseline_mean:.2f}
-Z-score: {z_score:.2f}"
-                )
+        suspicious.sort(key=lambda x: x[1], reverse=True)
+        top_ip, top_count = suspicious[0]
 
-            # ================= PER-IP DETECTION =================
-            for ip, dq in list(ip_windows.items()):
-                if ip in banned_ips:
-                    continue
-                global_window.popleft()
+        if top_ip in banned_ips:
+            continue
+
+        block_ip(top_ip)
+
+        banned_ips[top_ip] = {
+            "time": time.time(),
+            "count": top_count,
+            "global_rate": global_rate,
+        }
+
+        attack_data = {
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "ip": top_ip,
+            "count": top_count,
+            "global_rate": global_rate,
+        }
+
+        add_alert(str(attack_data))
+        add_audit(f"Attack detected: {attack_data}")
+
+        message = (
+            f"Rate: {global_rate}\n"
+            f"IP: {top_ip}\n"
+            f"Count: {top_count}"
+        )
+
+        send_slack_alert("🚨 Anomaly Detected", message)

@@ -19,6 +19,8 @@ services:
     build: .
     container_name: hng_detector
     restart: always
+    ports:
+      - "8080:8080"
     volumes:
       - HNG-nginx-logs:/var/log/nginx
 

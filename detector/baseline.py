@@ -1,14 +1,15 @@
 import time
 import statistics
+import detector.state
+
 from datetime import datetime
-from state import (
+from detector.state import (
     global_window,
     ip_error_windows,
     hourly_history,
     state_lock,
     add_audit,
 )
-import state
 
 
 def start_baseline_scheduler():

@@ -2,14 +2,14 @@ import time
 import json
 from datetime import datetime
 
-from state import (
+from detector.state import (
     global_window,
     ip_windows,
     ip_error_windows,
     ip_request_counter,
     state_lock,
 )
-from detector import start_detector_loop  # optional if needed in architecture
+from detector.detector import start_detector_loop  # optional if needed in architecture
 
 NGINX_LOG_PATH = "nginx/logs/access.log"
 
@@ -68,4 +68,3 @@ def start_log_monitor():
 
                 # CLEAN OLD ENTRIES (60s sliding window)
                 cutoff = now - 60
-                    edq

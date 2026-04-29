@@ -2,12 +2,11 @@ from flask import Flask, render_template_string
 import time
 import psutil
 
-import state
-from state import banned_ips, ip_request_counter, baseline_mean, baseline_stddev
+from detector import state
+import detector.state as state
+from detector.state import banned_ips, ip_request_counter
 
 app = Flask(__name__)
-
-START_TIME = state.start_time
 
 HTML = """
 <!DOCTYPE html>
@@ -58,7 +57,7 @@ HTML = """
 def dashboard():
     cpu = psutil.cpu_percent()
     mem = psutil.virtual_memory().percent
-    uptime = int(time.time() - START_TIME)
+    uptime = int(time.time() - state.start_time)
 
     top_ips = sorted(ip_request_counter.items(), key=lambda x: x[1], reverse=True)[:10]
 
@@ -67,12 +66,11 @@ def dashboard():
         cpu=cpu,
         mem=mem,
         uptime=uptime,
-        mean=round(baseline_mean, 2),
-        std=round(baseline_stddev, 2),
+        mean=round(state.baseline_mean, 2),
+        std=round(state.baseline_stddev, 2),
         banned=banned_ips,
         top_ips=top_ips
     )
 
 def start_dashboard():
     app.run(host="0.0.0.0", port=8080, debug=False, use_reloader=False)
-

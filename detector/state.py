@@ -12,6 +12,9 @@ global_window = deque()
 # Per-IP request timestamps for last 60 seconds
 ip_windows = defaultdict(deque)
 
+# ===== Compatibility layer (fix broken imports) =====
+request_timestamps = global_window
+
 # Per-IP error timestamps (4xx/5xx) for last 60 seconds
 ip_error_windows = defaultdict(deque)
 

@@ -11,4 +11,4 @@ COPY . .
 EXPOSE 8080
 
 # Production-ready Gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "3", "main:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "3", "detector.dashboard:app"]
